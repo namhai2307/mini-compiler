@@ -50,7 +50,7 @@ void handle_function_definition(char *line, FILE *ml_file, FILE *c_file) {
 
     // Read the next line for the return statement
     fgets(line, 1024, ml_file);
-    char *token = strtok(line, " ");
+    char *token = strtok(line, " \t");
     if (strcmp(token, "return") == 0) {
         token = strtok(NULL, "\n");
         fprintf(c_file, "    return %s;\n", token);
