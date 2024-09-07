@@ -64,28 +64,25 @@ void handle_function_definition(char *line, FILE *ml_file, FILE *c_file) {
     // Write the function definition
     fprintf(c_file, "double %s(%s) {\n", function_name, parameters);
 
+    // Process the function body
+    while (fgets(line, 1024, ml_file)) {
+        if (line[0] != '\t') break;  // Exit when indentation ends (i.e., no tab at the start)
 
-    char *token = strtok(line, " \t");
-    // Read the next line for the return statement
-    while(fgets(line, 1024, ml_file)){
-        if (line[0] == '\t'){
-            if (strcmp(token, "print") == 0) {
-                handle_print_statement(token, c_file);
-            }
-
-            if (strcmp(token, "return") == 0) {
-                token = strtok(NULL, "\n");
-                fprintf(c_file, "    return %s;\n", token);
-            }
-
-            if (strstr(line, "<-")) {
-                handle_variable_assignment_v2(line, c_file);
-            }
+        // Inside the function, handle statements
+        if (strstr(line, "print")) {
+            handle_print_statement(line, c_file);
+        } else if (strstr(line, "<-")) {
+            handle_variable_assignment_v2(line, c_file);
+        } else if (strstr(line, "return")) {
+            char *token = strtok(line, " \t\n");
+            token = strtok(NULL, "\n");
+            fprintf(c_file, "    return %s;\n", token);
         }
     }
 
-    fprintf(c_file, "}\n\n");
+    fprintf(c_file, "}\n\n");  // Close the function
 }
+
 
 // Function to check if there's a function keyword in the file
 int contains_function(FILE *ml_file) {
