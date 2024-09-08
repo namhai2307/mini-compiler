@@ -62,7 +62,7 @@ void print_manager(char *var_name, FILE *c_file) {
 
 // Function to handle print statements
 void handle_print_statement(char *line, FILE *c_file) {
-    char *token = strtok(line, " ");
+    char *token = strtok(line, " \t");
     if (strcmp(token, "print") == 0) {
         token = strtok(NULL, "\n");
         // Delegate the printing job to print_manager
@@ -127,6 +127,20 @@ void handle_variable_assignment_v2(char *line, FILE *c_file) {
     }
 }
 
+// Handle function recall (i.e., function calls with parentheses)
+void handle_function_recall(char *line, FILE *c_file) {
+    // Check if the line contains a function call (look for '(')
+    if (strchr(line, '(')) {  // strchr checks for the '(' character
+        // Strip out any trailing newlines or spaces
+        char *end = line + strlen(line) - 1;
+        while (end > line && isspace((unsigned char)*end)) {
+            *end-- = '\0';
+        }
+        // Write the function call to the output
+        fprintf(c_file, "    %s;\n", line);
+    }
+}
+
 // Function to handle function definitions
 void handle_function_definition(char *line, FILE *ml_file, FILE *c_file) {
     char function_name[1024];
@@ -154,14 +168,14 @@ void handle_function_definition(char *line, FILE *ml_file, FILE *c_file) {
         if (line[0] != '\t') break;  // Exit when indentation ends (i.e., no tab at the start)
 
         // Inside the function, handle statements
-        if (strstr(line, "print")) {
-            handle_print_statement(line, c_file);
-        } else if (strstr(line, "<-")) {
+        if (strstr(line, "<-")) {
             assign_variable(line, c_file);
         } else if (strstr(line, "return")) {
             char *token = strtok(line, " \t\n");
             token = strtok(NULL, "\n");
             fprintf(c_file, "    return %s;\n", token);
+        } else if (strstr(line, "print")){
+            handle_print_statement(line, c_file);
         }
     }
 
@@ -187,7 +201,7 @@ void compiler(FILE *ml_file, FILE *c_file) {
     char var_name[100];
     int line_number = 1; // Track the line number for error reporting
     int error_detected = 0;  // Flag to indicate if an error was detected
-    int declare_count = 0; //count for keeping track of the declaration time(avoid repetition)
+    int declare_count = 0; //count for keeping track of the declaration time(avoid declaring a variable twice or more)
     if (contains_function(ml_file)){
         if (!ml_file || !c_file) {
             perror("Error opening file");
@@ -266,8 +280,13 @@ void compiler(FILE *ml_file, FILE *c_file) {
 
         //handle assignment
         if (strstr(line, "<-")) {
-            //fprintf(c_file, "\t");
             assign_variable(line, c_file);
+        }
+
+        //hanlde function recall
+        if (!strstr(line, "return") && !strstr(line, "<-")) {
+            fprintf(c_file, "    printsum(12, 6);\n");
+            //handle_function_recall(line, c_file);
         }
     }
  }
