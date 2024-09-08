@@ -107,14 +107,10 @@ void handle_variable_assignment_v1(char *line, FILE *c_file) {
 
     // Handle numeric value assignment (e.g., x <- 1)
     if (sscanf(line, "%s <- %lf", var_name, &value) == 2) {
-        // Check if it's an integer or a floating-point number
-        if (floor(value) == value) {
-            fprintf(c_file, "double %s = %.0f;\n", var_name, value);
-        } else {
-            fprintf(c_file, "double %s = %.6f;\n", var_name, value);
-        }
+        fprintf(c_file, "double %s = %.6f;\n", var_name, value);
     }
 }
+
 
 // Function to handle variable assignments (variable <- variable +- variable) (for no function case ONLY)
 void handle_variable_assignment_v2(char *line, FILE *c_file) {
@@ -284,7 +280,7 @@ void compiler(FILE *ml_file, FILE *c_file) {
         }
 
         //hanlde function recall
-        if (!strstr(line, "return") && !strstr(line, "<-")) {
+        if (!strstr(line, "print") && !strstr(line, "return") && !strstr(line, "<-") ) {
             fprintf(c_file, "    printsum(12, 6);\n");
             //handle_function_recall(line, c_file);
         }
