@@ -187,7 +187,7 @@ void compiler(FILE *ml_file, FILE *c_file) {
     char var_name[100];
     int line_number = 1; // Track the line number for error reporting
     int error_detected = 0;  // Flag to indicate if an error was detected
-
+    int declare_count = 0; //count for keeping track of the declaration time(avoid repetition)
     if (contains_function(ml_file)){
         if (!ml_file || !c_file) {
             perror("Error opening file");
@@ -213,10 +213,11 @@ void compiler(FILE *ml_file, FILE *c_file) {
                 error_detected = 1;
             }
 
-            if (strstr(line, "<-")) {
+            if (strstr(line, "<-") && declare_count == 0) {
                 // Extract variable name and declare it with default value
                 sscanf(line, "%s <-", var_name);
                 declare_variable(var_name, c_file);  // Declare with 0.0
+                declare_count += 1;
             }
 
             line_number++;  // Increment the line number
