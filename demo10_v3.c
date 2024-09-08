@@ -99,8 +99,33 @@ void assign_variable(char *line, FILE *c_file) {
     }
 }
 
+// Function to handle variable assignments (variable <- value) (for no function case ONLY)
+void handle_variable_assignment_v1(char *line, FILE *c_file) {
+    char var_name[100];
+    double value;
+    char expression[1024];
 
+    // Handle numeric value assignment (e.g., x <- 1)
+    if (sscanf(line, "%s <- %lf", var_name, &value) == 2) {
+        // Check if it's an integer or a floating-point number
+        if (floor(value) == value) {
+            fprintf(c_file, "double %s = %.0f;\n", var_name, value);
+        } else {
+            fprintf(c_file, "double %s = %.6f;\n", var_name, value);
+        }
+    }
+}
 
+// Function to handle variable assignments (variable <- variable +- variable) (for no function case ONLY)
+void handle_variable_assignment_v2(char *line, FILE *c_file) {
+    char var_name[100];
+    double value;
+    char expression[1024];
+    // Handle expression assignment (e.g., z <- a + b)
+    if (sscanf(line, "%s <- %[^\n]", var_name, expression) == 2) {
+        fprintf(c_file, "double %s = %s;\n", var_name, expression);
+    }
+}
 
 // Function to handle function definitions
 void handle_function_definition(char *line, FILE *ml_file, FILE *c_file) {
@@ -266,8 +291,11 @@ void compiler(FILE *ml_file, FILE *c_file) {
 
             //handle assignment
             if (strstr(line, "<-")) {
-                //fprintf(c_file, "\t");
-                assign_variable(line, c_file);
+                if (strchr(line, '+') || strchr(line, '-') || strchr(line, '*') || strchr(line, '/')) {
+                    handle_variable_assignment_v2(line, c_file);  // Expressions
+                } else {
+                    handle_variable_assignment_v1(line, c_file);  // Direct values
+                }
             }
         }
     }
