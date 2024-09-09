@@ -125,8 +125,8 @@ void handle_variable_assignment_v2(char *line, FILE *c_file) {
 
 // Handle function recall (i.e., function calls with parentheses)
 void handle_function_recall(char *line, FILE *c_file) {
-    // Check if the line contains a function call (look for '(')
-    if (strchr(line, '(') && strchr(line, ')')) {  // strchr checks for the '(' character
+    // Check if the line contains a function call (look for '(' and ')' character)
+    if (strchr(line, '(') && strchr(line, ')') && !strchr(line, '+') && !strchr(line, '-') && !strchr(line, '*') && !strchr(line, '/')) {  // strchr checks for the '(' character
         fprintf(c_file, "    %s;\n", line);
     }
 }
