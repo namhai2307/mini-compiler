@@ -221,12 +221,12 @@ void compiler(FILE *ml_file, FILE *c_file) {
                 // Extract variable name and declare it with default value
                 sscanf(line, "%s <-", var_name);
                 declare_variable(var_name, c_file);  // Declare with 0.0
-                declare_count += 1;
+                //declare_count += 1;
             }
 
             line_number++;  // Increment the line number
         }
-
+        declare_count += 1;
         // If there were errors, stop the process and don't generate C code
         if (error_detected) {
             fprintf(stderr, "! Errors detected. Halting code generation.\n");
