@@ -162,7 +162,7 @@ void handle_function_definition(char *line, FILE *ml_file, FILE *c_file) {
     fprintf(c_file, "}\n\n");  // Close the function
 }
 
-// Function to check if there's a function keyword in the file
+// Function to check if there's a "function" keyword in the file
 int contains_function(FILE *ml_file) {
     char line[1024];
     while (fgets(line, sizeof(line), ml_file)) {
@@ -208,10 +208,12 @@ void compiler(FILE *ml_file, FILE *c_file) {
             }
 
             if (strstr(line, "<-") && declare_count == 0) {
-                // Extract variable name and declare it with default value
-                sscanf(line, "%s <-", var_name);
-                declare_variable(var_name, c_file);  // Declare with 0.0
-                //declare_count += 1;
+                if (line[0] == '\t') {continue;} //to avoid repetition declaration inside a function
+                else{
+                    // Extract variable name and declare it with default value
+                    sscanf(line, "%s <-", var_name);
+                    declare_variable(var_name, c_file);  // Declare with 0.0
+                }
             }
 
             line_number++;  // Increment the line number
