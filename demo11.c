@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 #include <ctype.h>
 
 // Function to check for incomplete assignment errors
@@ -83,14 +82,7 @@ void assign_variable(char *line, FILE *c_file) {
 
     // Handle numeric value assignment (e.g., x <- 1)
     if (sscanf(line, "%s <- %lf", var_name, &value) == 2) {
-        // Check if the value is an integer or a floating-point number
-        if (floor(value) == value) {
-            // Assign integer value
-            fprintf(c_file, "    %s = %.0f;\n", var_name, value);  // No decimals for integers
-        } else {
-            // Assign floating-point value with 6 decimal places
-            fprintf(c_file, "    %s = %.6f;\n", var_name, value);
-        }
+        fprintf(c_file, "    %s = %.6f;\n", var_name, value);
     }
     // Handle expression assignment (e.g., z <- x + y)
     else if (sscanf(line, "%s <- %[^\n]", var_name, expression) == 2) {
@@ -103,7 +95,6 @@ void assign_variable(char *line, FILE *c_file) {
 void handle_variable_assignment_v1(char *line, FILE *c_file) {
     char var_name[100];
     double value;
-    char expression[1024];
 
     // Handle numeric value assignment (e.g., x <- 1)
     if (sscanf(line, "%s <- %lf", var_name, &value) == 2) {
@@ -115,7 +106,6 @@ void handle_variable_assignment_v1(char *line, FILE *c_file) {
 // Function to handle variable assignments (variable <- variable +-*/ variable) (for no function case ONLY)
 void handle_variable_assignment_v2(char *line, FILE *c_file) {
     char var_name[100];
-    double value;
     char expression[1024];
     // Handle expression assignment (e.g., z <- a + b)
     if (sscanf(line, "%s <- %[^\n]", var_name, expression) == 2) {
