@@ -211,29 +211,24 @@ void compiler(FILE *ml_file, FILE *c_file) {
         
         if (strstr(line, "<-") && declare_count == 0) {
             
-            if (line[0] == '\t') {
-                continue;  // Skip lines inside functions to avoid redeclaration
-            } else {
-                // Extract variable name from the line
-                sscanf(line, "%s <-", var_name);
+            // Extract variable name from the line
+            sscanf(line, "%s <-", var_name);
                 
-                // Check if the variable is already declared
-                is_duplicate = 0;  // Reset duplicate flag
-                for (int i = 0; i < declare_index; i++) {
-                    if (strcmp(var_name, variable_name[i]) == 0) {
-                        is_duplicate = 1;  // Mark as duplicate if found
-                        break;
-                    }
+            // Check if the variable is already declared
+            is_duplicate = 0;  // Reset duplicate flag
+            for (int i = 0; i < declare_index; i++) {
+                if (strcmp(var_name, variable_name[i]) == 0) {
+                    is_duplicate = 1;  // Mark as duplicate if found
+                    break;
                 }
+            }
 
                 // Declare the variable only if it's not a duplicate
-                if (!is_duplicate) {
-                    declare_variable(var_name, c_file);  // Declare variable in C file with default value
-
-                    // Store the variable name in the variable_name list
-                    strcpy(variable_name[declare_index], var_name);
-                    declare_index++;
-                }
+            if (!is_duplicate) {
+                declare_variable(var_name, c_file);  // Declare variable in C file with default value
+                // Store the variable name in the variable_name list
+                strcpy(variable_name[declare_index], var_name);
+                declare_index++;
             }
         }
         line_number ++;
