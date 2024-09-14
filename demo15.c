@@ -3,53 +3,6 @@
 #include <string.h>
 #include <ctype.h>
 
-// Function to check for unrecognized commands
-int check_unrecognized_command(FILE *ml_file) {
-    char line[256];
-    int line_number = 0;
-    int success = 1;  // Track if there is any syntax error
-
-    while (fgets(line, sizeof(line), ml_file)) {
-        line_number++;
-
-        // Remove trailing newline
-        line[strcspn(line, "\n")] = 0;
-
-        // Skip comment lines
-        if (line[0] == '#') continue;
-
-        // Check for empty or whitespace-only lines (except valid code lines)
-        if (strlen(line) < 3 || line[0] == '\0') continue;
-
-        // Check for function declarations (without parentheses)
-        if (strstr(line, "function")) {
-            char func_name[50], param[50];
-            // Ensure function name and at least one parameter are present
-            if (sscanf(line, "function %s %s", func_name, param) != 2) {
-                fprintf(stderr, "!Syntax Error on line %d: Incomplete function definition.\n", line_number);
-                success = 0;
-            }
-        }
-        // Check for variable assignment using `<-`
-        else if (strstr(line, "<-")) {
-            char var_name[50];
-            if (sscanf(line, "%s <-", var_name) != 1 || strlen(var_name) == 0) {
-                fprintf(stderr, "!Syntax Error on line %d: Invalid variable assignment.\n", line_number);
-                success = 0;
-            }
-        }
-        // Add more syntax checks as needed (for example, valid identifiers, etc.)
-    }
-
-    if (success == 0) {
-        // Exit with error code if any syntax error was detected
-        exit(1);
-        return 1;
-    } else {
-        printf("No syntax errors found. Compilation can proceed.\n");
-        return 0;
-    }
-}
 
 // Function to manage how a variable is printed (handles integer/float formatting)
 int result_index = 1; //index for the middle variable inside the main function
@@ -315,6 +268,48 @@ void compiler(FILE *ml_file, FILE *c_file) {
     fprintf(c_file, "\n    return 0;\n}\n"); // Close the main function
 }
 
+// Function to check for unrecognized commands
+int check_unrecognized_command(FILE *ml_file) {
+    char line[256];
+    int line_number = 0;
+    int success = 1;  // Track if there is any syntax error
+
+    while (fgets(line, sizeof(line), ml_file)) {
+        line_number++;
+
+        // Remove trailing newline
+        line[strcspn(line, "\n")] = 0;
+
+        // Skip comment lines
+        if (line[0] == '#') continue;
+
+        // Check for empty or whitespace-only lines (except valid code lines)
+        if (strlen(line) < 3 || line[0] == '\0') continue;
+
+        // Check for variable assignment using `<-`
+        if (strstr(line, "<-")) {
+            char var_name[50];
+            if (sscanf(line, "%s <-", var_name) != 1 || strlen(var_name) == 0) {
+                fprintf(stderr, "!Syntax Error on line %d: Invalid variable assignment.\n", line_number);
+                success = 0;
+            }
+        }
+        else if ((strchr(line, '(') && !strchr(line, ')')) || (!strchr(line, '(') && strchr(line, ')'))) {
+            success = 0;
+        }
+        // Add more syntax checks as needed (for example, valid identifiers, etc.)
+    }
+
+    if (success == 0) {
+        // Exit with error code if any syntax error was detected
+        return 1;
+    } else {
+        rewind(ml_file);
+        printf("No syntax errors found. Compilation can proceed.\n");
+        return 0;
+    }
+}
+
 int main(int argc, char *argv[]) {
     if (argc != 2) {
         fprintf(stderr, "Usage: %s <file.ml>\n", argv[0]);
@@ -334,7 +329,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    compiler(ml_file, c_file);
     if (check_unrecognized_command(ml_file)) {
         fprintf(stderr, "!\n");
         fclose(ml_file);
@@ -342,6 +336,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     else {
+        compiler(ml_file, c_file);
         fclose(ml_file);
         fclose(c_file);
 
