@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <unistd.h>
-#include <sys/types.h> 
 
 // Function to check for unrecognized commands
 int check_unrecognized_command(FILE *ml_file) {
@@ -34,23 +32,18 @@ int check_unrecognized_command(FILE *ml_file) {
         }
         // Check for variable assignment using `<-`
         else if (strstr(line, "<-")) {
-            char var_name[50], expression[100], extra[50];
-            // Parse variable assignment and detect any unexpected characters
-            if (sscanf(line, "%s <- %s %s", var_name, expression, extra) == 3) {
-                fprintf(stderr, "!Syntax Error on line %d: Unexpected characters at the end of the line.\n", line_number);
-                success = 0;
-            } else if (sscanf(line, "%s <- %s", var_name, expression) != 2 || strlen(expression) == 0) {
+            char var_name[50];
+            if (sscanf(line, "%s <-", var_name) != 1 || strlen(var_name) == 0) {
                 fprintf(stderr, "!Syntax Error on line %d: Invalid variable assignment.\n", line_number);
                 success = 0;
             }
         }
         // Add more syntax checks as needed (for example, valid identifiers, etc.)
-
     }
 
     if (success == 0) {
-        rewind(ml_file);
         // Exit with error code if any syntax error was detected
+        exit(1);
         return 1;
     } else {
         printf("No syntax errors found. Compilation can proceed.\n");
@@ -116,7 +109,6 @@ void handle_function_recall(char *line, FILE *c_file) {
 void handle_function_definition(char *line, FILE *ml_file, FILE *c_file) {
     char function_name[1024];
     char parameters[256] = {0};
-
     // Parse the function name
     strcpy(function_name, strtok(NULL, " "));
 
@@ -130,7 +122,6 @@ void handle_function_definition(char *line, FILE *ml_file, FILE *c_file) {
             strcat(parameters, ", ");
         }
     }
-
     // Write the function definition
     fprintf(c_file, "double %s(%s) {\n", function_name, parameters);
 
@@ -218,8 +209,12 @@ void compiler(FILE *ml_file, FILE *c_file) {
         // Rewind the file pointer to start from the beginning again
         rewind(ml_file);
 
-        while (fgets(line, sizeof(line), ml_file)) {
-        char *token = strtok(line, " ");
+    while (fgets(line, sizeof(line), ml_file)) {
+        int len = strlen(line);
+        if (len > 0 && isspace(line[len - 2])) {
+            line[len - 2] = '\0';  // Remove the trailing space
+        }
+        char *token = strtok(line, " \n");
         if (strcmp(token, "function") == 0) {
             handle_function_definition(line, ml_file, c_file);
         }
@@ -332,12 +327,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    pid_t pid = getpid();
-
-    // Step 2: Create the filename dynamically using the process ID
-    char c_filename[50];
-    snprintf(c_filename, sizeof(c_filename), "ml-%d.c", pid);  // Format filename as "ml-<pid>.c"
-
     FILE *c_file = fopen("output.c", "w");
     if (c_file == NULL) {
         fprintf(stderr, "Error: Cannot create output file\n");
@@ -345,7 +334,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    //compiler(ml_file, c_file);
+    compiler(ml_file, c_file);
     if (check_unrecognized_command(ml_file)) {
         fprintf(stderr, "!\n");
         fclose(ml_file);
@@ -353,13 +342,14 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     else {
-        compiler(ml_file, c_file);
         fclose(ml_file);
         fclose(c_file);
 
         system("gcc -o output output.c -lm");
         system("./output");
     }
+
+    printf("Transpilation complete. 'output.c' generated.\n");
 
     return 0;
 }
