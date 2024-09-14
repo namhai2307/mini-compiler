@@ -38,17 +38,10 @@ int check_unrecognized_command(FILE *ml_file) {
                 success = 0;
             }
         }
-        // Check for print statements and function calls (should have parentheses)
-        else if (strstr(line, "print") || strstr(line, "(")) {
-            if (!strchr(line, '(') || !strchr(line, ')')) {
-                fprintf(stderr, "!Syntax Error on line %d: Missing parentheses in print statement or function call.\n", line_number);
-                success = 0;
-            }
-        }
         // Add more syntax checks as needed (for example, valid identifiers, etc.)
     }
 
-    if (!success) {
+    if (success == 0) {
         // Exit with error code if any syntax error was detected
         exit(1);
         return 1;
@@ -56,13 +49,6 @@ int check_unrecognized_command(FILE *ml_file) {
         printf("No syntax errors found. Compilation can proceed.\n");
         return 0;
     }
-}
-
-// Function to handle all error checks for a line of ml code
-void check_syntax_errors(char *line, int line_number, FILE *stderr) {
-
-    // Check for unrecognized commands
-    //check_unrecognized_command(line, line_number, stderr);
 }
 
 // Function to manage how a variable is printed (handles integer/float formatting)
@@ -177,8 +163,6 @@ int contains_function(FILE *ml_file) {
 void compiler(FILE *ml_file, FILE *c_file) {
     char line[1024];
     char var_name[100];
-    int line_number = 1; // Track the line number for error reporting
-    int error_detected = 0;  // Flag to indicate if an error was detected
     int declare_count = 0; //count for keeping track of the declaration time(avoid declaring a variable twice or more)
     char variable_name[50][50];
     int declare_index = 0;
@@ -196,15 +180,7 @@ void compiler(FILE *ml_file, FILE *c_file) {
     while (fgets(line, sizeof(line), ml_file)) {
         // Skip empty lines and comments
         if (line[0] == '#' || strlen(line) <= 1) {
-            line_number++;
             continue;  // Ignore comment lines and empty lines
-        }
-
-        check_syntax_errors(line, line_number, stderr);
-
-        // If an error is found, set the error flag
-        if (strstr(line, "Error")) {
-            error_detected = 1;
         }
         
         if (strstr(line, "<-") && declare_count == 0) {
@@ -229,20 +205,8 @@ void compiler(FILE *ml_file, FILE *c_file) {
                 declare_index++;
             }
         }
-        line_number ++;
     }
         declare_count += 1;
-        // If there were errors, stop the process and don't generate C code
-        if (error_detected) {
-            fprintf(stderr, "! Errors detected. Halting code generation.\n");
-            return;  // Exit the function without generating C code
-        }
-
-        // If there were errors, stop the process and don't generate C code
-        if (error_detected) {
-            fprintf(stderr, "! Errors detected. Halting code generation.\n");
-            return;  // Exit the function without generating C code
-        }
 
         // Rewind the file pointer to start from the beginning again
         rewind(ml_file);
@@ -297,15 +261,7 @@ void compiler(FILE *ml_file, FILE *c_file) {
         while (fgets(line, sizeof(line), ml_file)) {
             // Skip empty lines and comments
             if (line[0] == '#' || strlen(line) <= 1) {
-                line_number++;
                 continue;  // Ignore comment lines and empty lines
-            }
-
-            check_syntax_errors(line, line_number, stderr);
-
-            // If an error is found, set the error flag
-            if (strstr(line, "Error")) {
-                error_detected = 1;
             }
             
             if (strstr(line, "<-") && declare_count == 0) {
