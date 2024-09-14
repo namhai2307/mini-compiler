@@ -3,51 +3,66 @@
 #include <string.h>
 #include <ctype.h>
 
-// Function to check for incomplete assignment errors
-void check_assignment_error(char *line, int line_number, FILE *stderr) {
-    if (strstr(line, "<-")) {
-        char var_name[100], value[100];
-        // Check if the line contains both a variable and a value
-        if (sscanf(line, "%s <- %s", var_name, value) != 2) {
-            fprintf(stderr, "! Error: Incomplete assignment on line %d\n", line_number);
-        }
-    }
-}
-
-// Function to check for incomplete or invalid print statements
-void check_print_error(char *line, int line_number, FILE *stderr) {
-    if (strstr(line, "print")) {
-        char var_to_print[100];
-        // Check if there is something to print after 'print'
-        if (sscanf(line, "print %s", var_to_print) != 1) {
-            fprintf(stderr, "! Error: Incomplete print statement on line %d\n", line_number);
-        }
-    }
-}
-
-
 // Function to check for unrecognized commands
-void check_unrecognized_command(char *line, int line_number, FILE *stderr) {
-    char command[100];
-    // Extract the first word of the line to identify the command
-    sscanf(line, "%s", command);
+int check_unrecognized_command(FILE *ml_file) {
+    char line[256];
+    int line_number = 0;
+    int success = 1;  // Track if there is any syntax error
 
-    // List of recognized commands (print, assignment, function)
-    if (strcmp(command, "print") != 0 && !strstr(line, "<-") && strcmp(command, "function") != 0) {
-        fprintf(stderr, "! Error: Unrecognized command on line %d\n", line_number);
+    while (fgets(line, sizeof(line), ml_file)) {
+        line_number++;
+
+        // Remove trailing newline
+        line[strcspn(line, "\n")] = 0;
+
+        // Skip comment lines
+        if (line[0] == '#') continue;
+
+        // Check for empty or whitespace-only lines (except valid code lines)
+        if (strlen(line) < 3 || line[0] == '\0') continue;
+
+        // Check for function declarations (without parentheses)
+        if (strstr(line, "function")) {
+            char func_name[50], param[50];
+            // Ensure function name and at least one parameter are present
+            if (sscanf(line, "function %s %s", func_name, param) != 2) {
+                fprintf(stderr, "!Syntax Error on line %d: Incomplete function definition.\n", line_number);
+                success = 0;
+            }
+        }
+        // Check for variable assignment using `<-`
+        else if (strstr(line, "<-")) {
+            char var_name[50];
+            if (sscanf(line, "%s <-", var_name) != 1 || strlen(var_name) == 0) {
+                fprintf(stderr, "!Syntax Error on line %d: Invalid variable assignment.\n", line_number);
+                success = 0;
+            }
+        }
+        // Check for print statements and function calls (should have parentheses)
+        else if (strstr(line, "print") || strstr(line, "(")) {
+            if (!strchr(line, '(') || !strchr(line, ')')) {
+                fprintf(stderr, "!Syntax Error on line %d: Missing parentheses in print statement or function call.\n", line_number);
+                success = 0;
+            }
+        }
+        // Add more syntax checks as needed (for example, valid identifiers, etc.)
+    }
+
+    if (!success) {
+        // Exit with error code if any syntax error was detected
+        exit(1);
+        return 1;
+    } else {
+        printf("No syntax errors found. Compilation can proceed.\n");
+        return 0;
     }
 }
 
 // Function to handle all error checks for a line of ml code
 void check_syntax_errors(char *line, int line_number, FILE *stderr) {
-    // Check for assignment errors
-    check_assignment_error(line, line_number, stderr);
-
-    // Check for print errors
-    check_print_error(line, line_number, stderr);
 
     // Check for unrecognized commands
-    check_unrecognized_command(line, line_number, stderr);
+    //check_unrecognized_command(line, line_number, stderr);
 }
 
 // Function to manage how a variable is printed (handles integer/float formatting)
@@ -362,14 +377,19 @@ int main(int argc, char *argv[]) {
     }
 
     compiler(ml_file, c_file);
+    if (check_unrecognized_command(ml_file)) {
+        fprintf(stderr, "!\n");
+        fclose(ml_file);
+        fclose(c_file);
+        return 1;
+    }
+    else {
+        fclose(ml_file);
+        fclose(c_file);
 
-    fclose(ml_file);
-    fclose(c_file);
-
-    system("gcc -o output output.c -lm");
-    system("if [ $? -eq 0 ]; then ./output; else echo \"!\"; fi");
-    //system("./output");
-    
+        system("gcc -o output output.c -lm");
+        system("if [ $? -eq 0 ]; then ./output; else echo \"!\"; fi");
+    }
 
     printf("Transpilation complete. 'output.c' generated.\n");
 
