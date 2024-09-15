@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 
+// This section is for the parsing process
 
 // Function to manage how a variable is printed (handles integer/float formatting)
 int result_index = 1; //index for the middle variable inside the main function
@@ -164,8 +165,8 @@ void compiler(FILE *ml_file, FILE *c_file) {
 
     while (fgets(line, sizeof(line), ml_file)) {
         int len = strlen(line);
-        if (len > 0 && isspace(line[len - 2])) {
-            line[len - 2] = '\0';  // Remove the trailing space
+        if (len > 2 && isspace(line[len - 2])) {
+            line[len - 2] = '\0';  // Remove the trailing space of the function declaring line
         }
         char *token = strtok(line, " \n");
         if (strcmp(token, "function") == 0) {
@@ -268,6 +269,37 @@ void compiler(FILE *ml_file, FILE *c_file) {
     fprintf(c_file, "\n    return 0;\n}\n"); // Close the main function
 }
 
+// This section is for the error detection
+
+// Check invalid indent
+int indent_check(FILE *ml_file) {
+    char line[256];
+    int inside_function = 0;
+
+    rewind(ml_file);  // Ensure the file starts at the beginning
+
+    while (fgets(line, sizeof(line), ml_file)) {
+        // Check if we're entering a function
+        if (strstr(line, "function")) {
+            inside_function = 1;
+            rewind(ml_file);
+            break;
+        }
+
+        // Check for indentation when not inside a function
+        else {
+            if ((line[0] == '\t' || isspace(line[0]))) {
+                fprintf(stderr, "Syntax Error: Unexpected indentation outside a function.\n");
+                rewind(ml_file);  // Reset file pointer for future use
+                return 1;  // Invalid indentation found
+            }
+        }
+    }
+
+    rewind(ml_file);  // Reset file pointer after checking
+    return 0;  // No indentation issues found
+}
+
 // Function to check for unrecognized commands
 int check_unrecognized_command(FILE *ml_file) {
     char line[256];
@@ -286,17 +318,15 @@ int check_unrecognized_command(FILE *ml_file) {
         // Check for empty or whitespace-only lines (except valid code lines)
         if (strlen(line) < 3 || line[0] == '\0') continue;
 
-        // Check for variable assignment using `<-`
-        if (strstr(line, "<-")) {
-            char var_name[50];
-            if (sscanf(line, "%s <-", var_name) != 1 || strlen(var_name) == 0) {
-                fprintf(stderr, "!Syntax Error on line %d: Invalid variable assignment.\n", line_number);
-                success = 0;
-            }
-        }
-        else if ((strchr(line, '(') && !strchr(line, ')')) || (!strchr(line, '(') && strchr(line, ')'))) {
+        // Check for invalid indent
+        //if (indent_check(ml_file)) {success = 0;}
+
+
+        // Check for incomplete parenthesis
+        if ((strchr(line, '(') && !strchr(line, ')')) || (!strchr(line, '(') && strchr(line, ')'))) {
             success = 0;
         }
+
         // Add more syntax checks as needed (for example, valid identifiers, etc.)
     }
 
@@ -305,7 +335,6 @@ int check_unrecognized_command(FILE *ml_file) {
         return 1;
     } else {
         rewind(ml_file);
-        printf("No syntax errors found. Compilation can proceed.\n");
         return 0;
     }
 }
@@ -344,7 +373,6 @@ int main(int argc, char *argv[]) {
         system("./output");
     }
 
-    printf("Transpilation complete. 'output.c' generated.\n");
 
     return 0;
 }
