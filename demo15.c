@@ -1,3 +1,7 @@
+//  CITS2002 Project 1 2024
+//  Student1:   24149594   Nam Tran
+//  Student2:   STUDENT-NUMBER2   NAME-2
+//  Platform:   Linux 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -340,7 +344,8 @@ int check_unrecognized_command(FILE *ml_file) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
+    int arg_index = 0;
+    if (argc < 2) {
         fprintf(stderr, "Usage: %s <file.ml>\n", argv[0]);
         return 1;
     }
@@ -365,6 +370,13 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     else {
+        //this part is for the requirement "the variables arg0, arg1, and so on, provide access to the program's command-line arguments which provide real-valued numbers"
+        if (argc > 2) {
+            for (int i = 2; i < argc; i ++) {
+                fprintf(c_file, "double arg%d = %d;\n", arg_index, atoi(argv[i]));
+                arg_index ++;
+            }
+        }
         compiler(ml_file, c_file);
         fclose(ml_file);
         fclose(c_file);
