@@ -373,7 +373,7 @@ int main(int argc, char *argv[]) {
         //this part is for the requirement "the variables arg0, arg1, and so on, provide access to the program's command-line arguments which provide real-valued numbers"
         if (argc > 2) {
             for (int i = 2; i < argc; i ++) {
-                fprintf(c_file, "double arg%d = %d;\n", arg_index, atoi(argv[i]));
+                fprintf(c_file, "double arg%d = %.6f;\n", arg_index, atof(argv[i]));
                 arg_index ++;
             }
         }
