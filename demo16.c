@@ -169,7 +169,7 @@ void compiler(FILE *ml_file, FILE *c_file) {
 
     while (fgets(line, sizeof(line), ml_file)) {
         int len = strlen(line);
-        if (len > 2 && isspace(line[len - 2])) {
+        if (len > 2 && isspace(line[len - 2]) && strstr(line, "function")) {
             line[len - 2] = '\0';  // Remove the trailing space of the function declaring line
         }
         char *token = strtok(line, " \n");
@@ -300,6 +300,7 @@ int indent_check(FILE *ml_file) {
                     fprintf(stderr, "Syntax Error: Missing indentation inside function on line %d.\n", line_number);
                     rewind(ml_file);
                     return 1;
+                    break;
                 }
             }
 
@@ -314,6 +315,7 @@ int indent_check(FILE *ml_file) {
             fprintf(stderr, "Syntax Error: Unexpected indentation outside a function on line %d.\n", line_number);
             rewind(ml_file);
             return 1;
+            break;
         }
     }
 
@@ -341,9 +343,9 @@ int check_unrecognized_command(FILE *ml_file) {
         if (strlen(line) < 3 || line[0] == '\0') continue;
 
         // Check for invalid indent
-        if (indent_check(ml_file)) {
-            success = 0;  // Invalid indentation found
-        }
+        //if (indent_check(ml_file)) {
+            //success = 0;  // Invalid indentation found
+        //}
 
 
 
