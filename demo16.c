@@ -123,6 +123,7 @@ void compiler(FILE *ml_file, FILE *c_file) {
     char variable_name[50][50];
     int declare_index = 0;
     int is_duplicate = 0;
+    rewind(ml_file);
     if (contains_function(ml_file)){
         if (!ml_file || !c_file) {
             perror("Error opening file");
@@ -297,10 +298,8 @@ int indent_check(FILE *ml_file) {
             // If it's a return, assignment, or print statement, expect a tab indentation
             if (strstr(line, "return") || strstr(line, "<-") || strstr(line, "print")) {
                 if (line[0] != '\t') {
-                    fprintf(stderr, "Syntax Error: Missing indentation inside function on line %d.\n", line_number);
-                    rewind(ml_file);
+                    fprintf(stderr, "@Syntax Error: Missing indentation inside function on line %d.\n", line_number);
                     return 1;
-                    break;
                 }
             }
 
@@ -312,10 +311,8 @@ int indent_check(FILE *ml_file) {
 
         // Check for indentation outside functions
         else if ((line[0] == '\t' || isspace(line[0])) && strlen(line) > 1) {
-            fprintf(stderr, "Syntax Error: Unexpected indentation outside a function on line %d.\n", line_number);
-            rewind(ml_file);
+            fprintf(stderr, "@Syntax Error: Unexpected indentation outside a function on line %d.\n", line_number);
             return 1;
-            break;
         }
     }
 
@@ -343,11 +340,7 @@ int check_unrecognized_command(FILE *ml_file) {
         if (strlen(line) < 3 || line[0] == '\0') continue;
 
         // Check for invalid indent
-        //if (indent_check(ml_file)) {
-            //success = 0;  // Invalid indentation found
-        //}
-
-
+        //if (indent_check(ml_file)) {success = 0;}
 
         // Check for incomplete parenthesis
         if ((strchr(line, '(') && !strchr(line, ')')) || (!strchr(line, '(') && strchr(line, ')'))) {
