@@ -297,7 +297,8 @@ void compiler(FILE *ml_file, FILE *c_file) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
+    int arg_index = 0;
+    if (argc < 2) {
         fprintf(stderr, "Usage: %s <file.ml>\n", argv[0]);
         return 1;
     }
@@ -331,7 +332,7 @@ int main(int argc, char *argv[]) {
                 arg_index ++;
             }
         }
-        
+
         fclose(ml_file);
         fclose(c_file);
 
