@@ -1,0 +1,9 @@
+# Define a function without proper indentation
+function add_numbers a b
+	result <- a + b 
+	return result
+#
+#
+
+
+print add_numbers(2, 3)
