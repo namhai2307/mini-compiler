@@ -1,9 +1,9 @@
-# Define a function without proper indentation
-function add_numbers a b
-	result <- a + b 
-	return result
+# 18 is printed
 #
+x <- 2
+x <- x + 2
+function sum a 
+	print a + x
 #
 
-
-print add_numbers(2, 3)
+sum (12)
