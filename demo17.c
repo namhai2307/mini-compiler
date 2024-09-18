@@ -29,7 +29,7 @@ int check_unrecognized_command(FILE *ml_file) {
         exit(1);
         return 1;
     } else {
-        printf("No syntax errors found. Compilation can proceed.\n");
+        rewind(ml_file);
         return 0;
     }
 }
@@ -299,24 +299,24 @@ void compiler(FILE *ml_file, FILE *c_file) {
 int main(int argc, char *argv[]) {
     int arg_index = 0;
     if (argc < 2) {
-        fprintf(stderr, "Usage: %s <file.ml>\n", argv[0]);
+        fprintf(stderr, "@Usage: %s <file.ml>\n", argv[0]);
         return 1;
     }
 
     FILE *ml_file = fopen(argv[1], "r");
     if (ml_file == NULL) {
-        fprintf(stderr, "Error: Cannot open file %s\n", argv[1]);
+        fprintf(stderr, "@Error: Cannot open file %s\n", argv[1]);
         return 1;
     }
 
     FILE *c_file = fopen("output.c", "w");
     if (c_file == NULL) {
-        fprintf(stderr, "Error: Cannot create output file\n");
+        fprintf(stderr, "@Error: Cannot create output file\n");
         fclose(ml_file);
         return 1;
     }
 
-    compiler(ml_file, c_file);
+    //compiler(ml_file, c_file);
     if (check_unrecognized_command(ml_file)) {
         fprintf(stderr, "!\n");
         fclose(ml_file);
@@ -332,6 +332,7 @@ int main(int argc, char *argv[]) {
                 arg_index ++;
             }
         }
+        compiler(ml_file, c_file);
 
         fclose(ml_file);
         fclose(c_file);
