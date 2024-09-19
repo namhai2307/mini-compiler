@@ -377,7 +377,7 @@ int main(int argc, char *argv[]) {
         fclose(ml_file);
         fclose(c_file);
 
-        system("gcc -o ml_oUtpUt ml_oUtpUt.c -lm");
+        system("gcc -std=c11 -Wall -o ml_oUtpUt ml_oUtpUt.c -lm");
         system("./ml_oUtpUt");
     }
     //remove the output file
