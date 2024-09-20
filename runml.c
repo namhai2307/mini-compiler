@@ -1,6 +1,6 @@
 //  CITS2002 Project 1 2024
 //  Student1:   24149594   Nam Tran
-//  Student2:   STUDENT-NUMBER2   Yuxuan
+//  Student2:   24113613   Yuxuan Zhang
 //  Platform:   Linux
 #include <stdio.h>
 #include <stdlib.h>
@@ -188,7 +188,7 @@ void compiler(FILE *ml_file, FILE *c_file) {
     int is_duplicate = 0;
     if (contains_function(ml_file)){
         if (!ml_file || !c_file) {
-            perror("Error opening file");
+            perror("@Error opening file");
             return;
         }
 
@@ -377,7 +377,7 @@ int main(int argc, char *argv[]) {
         fclose(ml_file);
         fclose(c_file);
 
-        system("gcc -std=c11 -Wall -o ml_oUtpUt ml_oUtpUt.c -lm");
+        system("cc -std=c11 -o ml_oUtpUt ml_oUtpUt.c -lm");
         system("./ml_oUtpUt");
     }
     //remove the output file
